@@ -11,15 +11,11 @@ const client = new MongoClient(url);
 const app = express();
 app.use(express.json());
 
-app.get("/hello", async (req, res) => {
+app.get("/products", async (req, res) => {
     await client.connect();
     const db = client.db('myFirstDb');
     const product = await db.collection('products').find({}).toArray();
     res.json(product);
-});
-
-app.get("/products", (req, res) => {
-    res.json(products);
 });
 
 
@@ -29,12 +25,17 @@ app.get("/product/:productId", (req, res) => {
     res.json(product);
 });
 
-function populateCartIds (ids){
-    return cartItems.map(id => products.find(product => product.id === id));
+async function populateCartIds (ids){
+    await client.connect();
+    const db = client.db('myFirstDb');
+    return Promise.all(ids.map(id => db.collection('products').find({id})));
 }
 
-app.get("/cart", (req, res) => {
-    const populatedCart = populateCartIds(cartItems);
+app.get("/users/:userId/cart", async (req, res) => {
+    await client.connect();
+    const db = client.db('myFirstDb');
+    const users = db.collection('users').findOne({id: req.params.userId});
+    const populatedCart = populateCartIds(users.cartItems);
     res.json(populatedCart);
 });
 
