@@ -28,14 +28,14 @@ app.get("/product/:productId", (req, res) => {
 async function populateCartIds (ids){
     await client.connect();
     const db = client.db('myFirstDb');
-    return Promise.all(ids.map(id => db.collection('products').find({id})));
+    return Promise.all(ids.map(id => db.collection('products').findOne({id})));
 }
 
 app.get("/users/:userId/cart", async (req, res) => {
     await client.connect();
     const db = client.db('myFirstDb');
-    const users = db.collection('users').findOne({id: req.params.userId});
-    const populatedCart = populateCartIds(users.cartItems);
+    const users = await db.collection('users').findOne({id: req.params.userId});
+    const populatedCart = await populateCartIds(users.cartItems);
     res.json(populatedCart);
 });
 
